@@ -13,9 +13,6 @@ on:
         description: 'Fork Sync test mode'
         type: boolean
         default: false
-
-permissions:
-  workflows: write
   
 jobs:
   sync_latest_from_upstream:
@@ -39,7 +36,7 @@ jobs:
         upstream_sync_repo: cslant/blog-api-package
         upstream_repo_access_token: ${{ secrets.UPSTREAM_REPO_SECRET }}
 
-        test_mode: ${{ inputs.sync_test_mode }}
+        test_mode: true
       
     - name: New commits found
       if: steps.sync.outputs.has_new_commits == 'true'
