@@ -12,7 +12,7 @@ on:
       sync_test_mode:
         description: 'Fork Sync test mode'
         type: boolean
-        default: false
+        default: true
 
 jobs:
   sync_latest_from_upstream:
