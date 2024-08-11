@@ -15,7 +15,7 @@ on:
         default: false
 
 permissions:
-  contents: write
+  workflows: write
   
 jobs:
   sync_latest_from_upstream:
