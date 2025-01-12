@@ -10,6 +10,7 @@ use CSlant\Blog\Core\Http\Controllers\Base\BasePostController;
 use CSlant\Blog\Core\Http\Responses\Base\BaseHttpResponse;
 use CSlant\Blog\Core\Models\Post;
 use CSlant\Blog\Core\Models\Slug;
+use CSlant\Blog\Core\Supports\Base\FilterPost;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -95,6 +96,23 @@ class PostController extends BasePostController
         return $this
             ->httpResponse()
             ->setData(new PostResource($post))
+            ->toApiResponse();
+    }
+
+    /**
+     * @param  Request  $request
+     *
+     * @return BaseHttpResponse|JsonResource|JsonResponse|RedirectResponse
+     */
+    public function getFilters(Request $request): BaseHttpResponse|JsonResponse|JsonResource|RedirectResponse
+    {
+        $filters = FilterPost::setFilters($request->input());
+
+        $data = $this->postRepository->getFilters((array) $filters);
+
+        return $this
+            ->httpResponse()
+            ->setData(ListPostResource::collection($data))
             ->toApiResponse();
     }
 }
