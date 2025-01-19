@@ -2,17 +2,19 @@
 
 namespace CSlant\Blog\Api\Http\Resources;
 
+use CSlant\Blog\Core\Facades\Base\BaseHelper;
+use CSlant\Blog\Core\Http\Resources\Base\BaseListCategoryResource;
 use CSlant\Blog\Core\Models\Category;
 use CSlant\Blog\Core\Models\Slug;
-use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Request;
 
 /**
  * @mixin Category
  */
-class CategoryResource extends JsonResource
+class ListCategoryResource extends BaseListCategoryResource
 {
     /**
-     * @param $request
+     * @param  Request  $request
      *
      * @return array<string, mixed>
      */
@@ -22,9 +24,10 @@ class CategoryResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug instanceof Slug ? $this->slug->key : $this->slug,
-            'url' => $this->url,
-            'icon' => $this->icon,
+            'icon' => $this->icon ? BaseHelper::renderIcon($this->icon) : null,
             'description' => $this->description,
+            'children' => CategoryResource::collection($this->children),
+            'parent' => new CategoryResource($this->parent),
         ];
     }
 }
