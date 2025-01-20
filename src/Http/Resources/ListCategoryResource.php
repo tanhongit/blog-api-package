@@ -9,6 +9,8 @@ use CSlant\Blog\Core\Models\Slug;
 use Illuminate\Http\Request;
 
 /**
+ * @method static mixed make(...$params)
+ *
  * @mixin Category
  */
 class ListCategoryResource extends BaseListCategoryResource
@@ -20,6 +22,7 @@ class ListCategoryResource extends BaseListCategoryResource
      */
     public function toArray($request): array
     {
+        /** @var Category $this */
         return [
             'id' => $this->id,
             'name' => $this->name,
