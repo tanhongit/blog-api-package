@@ -1,6 +1,6 @@
 <?php
 
-namespace CSlant\Blog\Api\OpenApi\Responses\Errors;
+namespace CSlant\Blog\Api\OpenApi\Responses\Successes;
 
 use OpenApi\Attributes\JsonContent;
 use OpenApi\Attributes\Property;
@@ -8,20 +8,20 @@ use OpenApi\Attributes\Response;
 
 #[
     Response(
-        response: 500,
-        description: "Internal server error",
+        response: 201,
+        description: "Created",
         content: new JsonContent(
             properties: [
                 new Property(
                     property: 'message',
-                    description: 'Internal server error',
+                    description: 'Created',
                     type: 'string',
-                    example: 'Internal server error'
+                    example: 'Created'
                 ),
             ]
         )
     )
 ]
-class ErrorResponseSchema
+class SuccessCreateResponseSchema
 {
 }
