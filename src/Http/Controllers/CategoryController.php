@@ -5,7 +5,7 @@ namespace CSlant\Blog\Api\Http\Controllers;
 use Botble\Base\Http\Responses\BaseHttpResponse;
 use CSlant\Blog\Api\Enums\StatusEnum;
 use CSlant\Blog\Api\Http\Resources\ListCategoryResource;
-use CSlant\Blog\Api\OpenApi\Schemas\Resources\Category\CategoryModelResourceSchema;
+use CSlant\Blog\Api\OpenApi\Schemas\Resources\Category\CategoryListResourceSchema;
 use CSlant\Blog\Core\Facades\Base\SlugHelper;
 use CSlant\Blog\Core\Http\Controllers\Base\BaseCategoryController;
 use CSlant\Blog\Core\Models\Category;
@@ -15,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use OpenApi\Attributes\Get;
+use OpenApi\Attributes\Items;
 use OpenApi\Attributes\JsonContent;
 use OpenApi\Attributes\Parameter;
 use OpenApi\Attributes\Property;
@@ -77,17 +78,10 @@ class CategoryController extends BaseCategoryController
                                 default: false
                             ),
                             new Property(
-                                property: 'data',
-                                description: 'Data',
-                                properties: [
-                                    new Property(
-                                        property: 'category',
-                                        ref: CategoryModelResourceSchema::class,
-                                        description: 'Category',
-                                        type: 'object'
-                                    ),
-                                ],
-                                type: 'object'
+                                property: "data",
+                                description: "Data of model",
+                                type: "array",
+                                items: new Items(ref: CategoryListResourceSchema::class)
                             ),
                         ]
                     )
@@ -107,9 +101,18 @@ class CategoryController extends BaseCategoryController
             ]
         )
     ]
-    public function index(Request $request)
+    public function index(Request $request): BaseHttpResponse|JsonResponse|JsonResource|RedirectResponse
     {
-        return parent::index($request);
+        $data = Category::query()
+            ->wherePublished()
+            ->orderByDesc('created_at')
+            ->with(['slugable'])
+            ->paginate($request->integer('per_page', 10) ?: 10);
+
+        return $this
+            ->httpResponse()
+            ->setData(ListCategoryResource::collection($data))
+            ->toApiResponse();
     }
 
     /**
@@ -156,7 +159,7 @@ class CategoryController extends BaseCategoryController
                             ),
                             new Property(
                                 property: "data",
-                                ref: CategoryModelResourceSchema::class,
+                                ref: CategoryListResourceSchema::class,
                                 description: "Data of model",
                                 type: "object",
                             ),
