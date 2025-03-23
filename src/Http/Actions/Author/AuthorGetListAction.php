@@ -3,10 +3,10 @@
 namespace CSlant\Blog\Api\Http\Actions\Author;
 
 use Botble\Base\Http\Responses\BaseHttpResponse;
-use CSlant\Blog\Api\Http\Resources\Author\AuthorWithPostResource;
-use CSlant\Blog\Api\OpenApi\Schemas\Resources\Author\AuthorModelResourceSchema;
+use CSlant\Blog\Api\Http\Resources\Author\ListAuthorResource;
+use CSlant\Blog\Api\OpenApi\Schemas\Resources\Author\ListAuthorResourceSchema;
+use CSlant\Blog\Api\Services\AuthorService;
 use CSlant\Blog\Core\Http\Actions\Action;
-use CSlant\Blog\Core\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,7 +19,7 @@ use OpenApi\Attributes\Response;
 use OpenApi\Attributes\Schema;
 
 /**
- * Class AuthorAction
+ * Class AuthorGetListAction
  *
  *
  * @group Blog API
@@ -30,42 +30,39 @@ use OpenApi\Attributes\Schema;
  * @method BaseHttpResponse setData(mixed $data)
  * @method BaseHttpResponse|JsonResource|JsonResponse|RedirectResponse toApiResponse()
  */
-class AuthorAction extends Action
+class AuthorGetListAction extends Action
 {
+    protected AuthorService $authorService;
+
+    public function __construct(AuthorService $authorService)
+    {
+        $this->authorService = $authorService;
+    }
+
     /**
-     * @param  int  $authorId
      * @param  Request  $request
      *
      * @return BaseHttpResponse|JsonResource|JsonResponse|RedirectResponse
      * @group Blog
-     *
-     * @queryParam  Find by authorId of user.
-     *
      */
     #[
         Get(
-            path: "/authors/{authorId}",
-            operationId: "profileAuthorByAuthorId",
-            description: "Get profile and list post of the author by author id
-            
-    This API will get record from the database and return profile and list post of the author by author id.
+            path: "/authors",
+            operationId: "postGetAllAuthor",
+            description: "Get all authors with pagination (10 items per page by default, page 1 by default)
+
+    This API will get records from the database and return them as a paginated list. 
+    The default number of items per page is 10 and the default page number is 1. You can change these values by passing the `per_page` and `page` query parameters.
             ",
-            summary: "Get profile and list post of the author by author id",
+            summary: "Get all authors with pagination",
             tags: ["Author"],
             parameters: [
                 new Parameter(
-                    name: 'authorId',
-                    description: 'Author Id',
-                    in: 'path',
-                    required: true,
-                    schema: new Schema(type: 'string', example: 'php')
-                ),
-                new Parameter(
                     name: 'order_by',
-                    description: 'Can order by field: id, slug, created_at, ...',
+                    description: 'Can order by field: id, posts_count, updated_at, ...',
                     in: 'query',
                     required: false,
-                    schema: new Schema(type: 'string', default: 'created_at')
+                    schema: new Schema(type: 'string', default: 'updated_at')
                 ),
                 new Parameter(
                     name: 'order',
@@ -94,7 +91,7 @@ class AuthorAction extends Action
             responses: [
                 new Response(
                     response: 200,
-                    description: "Get author and list posts successfully",
+                    description: "Get list authors successfully",
                     content: new JsonContent(
                         properties: [
                             new Property(
@@ -105,7 +102,7 @@ class AuthorAction extends Action
                             ),
                             new Property(
                                 property: "data",
-                                ref: AuthorModelResourceSchema::class,
+                                ref: ListAuthorResourceSchema::class,
                                 description: "Data of model",
                                 type: "object",
                             ),
@@ -127,24 +124,13 @@ class AuthorAction extends Action
             ]
         )
     ]
-    public function __invoke(int $authorId, Request $request): BaseHttpResponse|JsonResponse|JsonResource|RedirectResponse
+    public function __invoke(Request $request): BaseHttpResponse|JsonResponse|JsonResource|RedirectResponse
     {
-        $user = User::query()
-            ->with('posts')
-            ->whereId($authorId)
-            ->first();
-
-        if (!$user) {
-            return $this
-                ->httpResponse()
-                ->setError()
-                ->setCode(404)
-                ->setMessage('Not found');
-        }
+        $users = $this->authorService->getAllAuthor($request);
 
         return $this
             ->httpResponse()
-            ->setData(AuthorWithPostResource::make($user))
+            ->setData(ListAuthorResource::collection($users))
             ->toApiResponse();
     }
 }

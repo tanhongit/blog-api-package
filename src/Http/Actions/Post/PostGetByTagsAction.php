@@ -3,17 +3,17 @@
 namespace CSlant\Blog\Api\Http\Actions\Post;
 
 use Botble\Base\Http\Responses\BaseHttpResponse;
-use CSlant\Blog\Api\Enums\StatusEnum;
-use CSlant\Blog\Api\Http\Resources\Post\ViewCountResource;
-use CSlant\Blog\Api\OpenApi\Schemas\Resources\Post\ViewCountResourceSchema;
-use CSlant\Blog\Core\Facades\Base\SlugHelper;
+use CSlant\Blog\Api\Http\Resources\Post\ListPostResource;
+use CSlant\Blog\Api\OpenApi\Schemas\Resources\Post\PostListResourceSchema;
+use CSlant\Blog\Api\Services\PostService;
 use CSlant\Blog\Core\Http\Actions\Action;
-use CSlant\Blog\Core\Models\Post;
-use CSlant\Blog\Core\Models\Slug;
+use CSlant\Blog\Core\Supports\Base\FilterPost;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use OpenApi\Attributes\Get;
+use OpenApi\Attributes\Items;
 use OpenApi\Attributes\JsonContent;
 use OpenApi\Attributes\Parameter;
 use OpenApi\Attributes\Property;
@@ -21,9 +21,7 @@ use OpenApi\Attributes\Response;
 use OpenApi\Attributes\Schema;
 
 /**
- * Class ViewCountAction
- *
- * @package CSlant\Blog\Api\Http\Controllers\Actions\Post
+ * Class GetByTagsAction
  *
  * @group Blog API
  *
@@ -33,38 +31,65 @@ use OpenApi\Attributes\Schema;
  * @method BaseHttpResponse setData(mixed $data)
  * @method BaseHttpResponse|JsonResource|JsonResponse|RedirectResponse toApiResponse()
  */
-class ViewCountAction extends Action
+class PostGetByTagsAction extends Action
 {
+    protected PostService $postService;
+
+    public function __construct(PostService $postService)
+    {
+        $this->postService = $postService;
+    }
+
     /**
-     * @param  string  $slug
+     * @param  Request  $request
      *
      * @group Blog
-     * @queryParam slug Find by slug of post.
+     *
+     * @queryParam  Find by list tag id of post.
+     *
      * @return BaseHttpResponse|JsonResource|JsonResponse|RedirectResponse
      */
     #[
         Get(
-            path: "/posts/{slug}/view-count",
-            operationId: "viewCountPostBySlug",
-            description: "Get views count of the post by slug
+            path: "/posts/get-by-tags",
+            operationId: "postGetByTag",
+            description: "Get list post of the tag by tag id
             
-    This API will get record from the database and return views count of the post by slug.
+    This API will get record from the database and return list post of the tag by tag id.
             ",
-            summary: "Get views count of the post by slug",
+            summary: "Get list post of the tag by tag id",
             tags: ["Post"],
             parameters: [
                 new Parameter(
-                    name: 'slug',
-                    description: 'Post slug',
-                    in: 'path',
-                    required: true,
-                    schema: new Schema(type: 'string', example: 'php')
+                    name: 'tags',
+                    description: 'Filter posts by tag specific tag IDs.',
+                    in: 'query',
+                    required: false,
+                    schema: new Schema(
+                        type: 'array',
+                        items: new Items(description: 'Input the exclude tag ID', type: 'integer'),
+                        default: null
+                    )
+                ),
+                new Parameter(
+                    name: 'per_page',
+                    description: 'Number of items per page',
+                    in: 'query',
+                    required: false,
+                    schema: new Schema(type: 'integer', default: 10)
+                ),
+                new Parameter(
+                    name: 'page',
+                    description: 'Page number',
+                    in: 'query',
+                    required: false,
+                    schema: new Schema(type: 'integer', default: 1)
                 ),
             ],
             responses: [
                 new Response(
                     response: 200,
-                    description: "Get views count successfully",
+                    description: "Get list posts by tag successfully",
                     content: new JsonContent(
                         properties: [
                             new Property(
@@ -75,7 +100,7 @@ class ViewCountAction extends Action
                             ),
                             new Property(
                                 property: "data",
-                                ref: ViewCountResourceSchema::class,
+                                ref: PostListResourceSchema::class,
                                 description: "Data of model",
                                 type: "object",
                             ),
@@ -97,36 +122,15 @@ class ViewCountAction extends Action
             ]
         )
     ]
-    public function __invoke(string $slug): BaseHttpResponse|JsonResponse|JsonResource|RedirectResponse
+    public function __invoke(Request $request): BaseHttpResponse|JsonResponse|JsonResource|RedirectResponse
     {
-        /** @var Slug $slug */
-        $slug = SlugHelper::getSlug($slug, SlugHelper::getPrefix(Post::getBaseModel()));
+        $filters = FilterPost::setFilters($request->input());
 
-        if (!$slug) {
-            return $this
-                ->httpResponse()
-                ->setError()
-                ->setCode(404)
-                ->setMessage('Not found');
-        }
-
-        $post = Post::query()
-            ->select(['id', 'views'])
-            ->whereId((int) $slug->reference_id)
-            ->where('status', StatusEnum::PUBLISHED)
-            ->first();
-
-        if (!$post) {
-            return $this
-                ->httpResponse()
-                ->setError()
-                ->setCode(404)
-                ->setMessage('Not found');
-        }
+        $data = $this->postService->getPostByTags((array) $filters);
 
         return $this
             ->httpResponse()
-            ->setData(new ViewCountResource($post))
+            ->setData(ListPostResource::collection($data))
             ->toApiResponse();
     }
 }
