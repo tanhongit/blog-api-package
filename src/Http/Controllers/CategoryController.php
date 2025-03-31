@@ -3,13 +3,11 @@
 namespace CSlant\Blog\Api\Http\Controllers;
 
 use Botble\Base\Http\Responses\BaseHttpResponse;
-use Botble\Blog\Http\Resources\CategoryResource;
 use Botble\Blog\Repositories\Interfaces\CategoryInterface;
 use Botble\Blog\Supports\FilterCategory;
 use CSlant\Blog\Api\Enums\StatusEnum;
 use CSlant\Blog\Api\Http\Resources\Category\ListCategoryResource;
 use CSlant\Blog\Api\OpenApi\Schemas\Resources\Category\CategoryListResourceSchema;
-use CSlant\Blog\Api\OpenApi\Schemas\Resources\Category\CategoryModelResourceSchema;
 use CSlant\Blog\Api\Services\CategoryService;
 use CSlant\Blog\Core\Facades\Base\SlugHelper;
 use CSlant\Blog\Core\Http\Controllers\Base\BaseCategoryController;
@@ -177,11 +175,11 @@ class CategoryController extends BaseCategoryController
                 ),
             ],
             responses: [
-              new Response(
-                  response: 200,
-                  description: "Get filters successfully",
-                  content: new JsonContent(
-                      properties: [
+                new Response(
+                    response: 200,
+                    description: "Get filters successfully",
+                    content: new JsonContent(
+                        properties: [
                             new Property(
                                 property: 'error',
                                 description: 'Error status',
@@ -192,22 +190,24 @@ class CategoryController extends BaseCategoryController
                                 property: "data",
                                 description: "Filter data",
                                 type: "array",
-                                items: new Items(ref: CategoryModelResourceSchema::class)
+                                items: new Items(ref: CategoryListResourceSchema::class)
                             ),
                         ]
-                  )
-              ),
+                    )
+                ),
             ],
         )
     ]
-    public function getFilters(Request $request, CategoryInterface $categoryRepository): BaseHttpResponse|JsonResponse|JsonResource|RedirectResponse
-    {
+    public function getFilters(
+        Request $request,
+        CategoryInterface $categoryRepository
+    ): BaseHttpResponse|JsonResponse|JsonResource|RedirectResponse {
         $filters = FilterCategory::setFilters($request->input());
         $data = $this->categoryService->getCustomFilters($filters);
 
         return $this
             ->httpResponse()
-            ->setData(CategoryResource::collection($data))
+            ->setData(ListCategoryResource::collection($data))
             ->toApiResponse();
     }
 
