@@ -37,4 +37,37 @@ class PostService
 
         return $query->paginate((int) $filters['per_page']);
     }
+
+    /**
+     * Get navigation posts based on ID sequence
+     * Previous = ID smaller than current, Next = ID larger than current
+     *
+     * @param Post $currentPost
+     * @return array{previous: null|Post, next: null|Post}
+     */
+    public function getNavigationPosts(Post $currentPost): array
+    {
+        $currentId = $currentPost->id;
+
+        // Get previous post (ID smaller than current, order by ID desc to get the closest one)
+        $previous = Post::query()
+            ->wherePublished()
+            ->where('id', '<', $currentId)
+            ->with(['slugable', 'author'])
+            ->orderBy('id', 'desc')
+            ->first();
+
+        // Get next post (ID larger than current, order by ID asc to get the closest one)
+        $next = Post::query()
+            ->wherePublished()
+            ->where('id', '>', $currentId)
+            ->with(['slugable', 'author'])
+            ->orderBy('id', 'asc')
+            ->first();
+
+        return [
+            'previous' => $previous,
+            'next' => $next,
+        ];
+    }
 }
