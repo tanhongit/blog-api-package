@@ -2,13 +2,13 @@
 
 namespace CSlant\Blog\Api\Http\Actions\Post;
 
-use Botble\Base\Http\Responses\BaseHttpResponse;
 use CSlant\Blog\Api\Http\Resources\Post\PostNavigateResource;
 use CSlant\Blog\Api\OpenApi\Schemas\Resources\Post\PostNavigateResourceSchema;
 use CSlant\Blog\Api\Services\PostService;
 use CSlant\Blog\Core\Enums\StatusEnum;
 use CSlant\Blog\Core\Facades\Base\SlugHelper;
 use CSlant\Blog\Core\Http\Actions\Action;
+use CSlant\Blog\Core\Http\Responses\Base\BaseHttpResponse;
 use CSlant\Blog\Core\Models\Post;
 use CSlant\Blog\Core\Models\Slug;
 use Illuminate\Http\JsonResponse;
@@ -119,7 +119,7 @@ class PostGetNavigateAction extends Action
             ->with(['categories', 'tags'])
             ->first();
 
-        if (!$currentPost) {
+        if (!$currentPost || !$currentPost instanceof Post) {
             return $this
                 ->httpResponse()
                 ->setError()

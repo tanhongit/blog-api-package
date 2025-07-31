@@ -42,7 +42,8 @@ class PostService
      * Get navigation posts based on ID sequence
      * Previous = ID smaller than current, Next = ID larger than current
      *
-     * @param Post $currentPost
+     * @param  Post  $currentPost
+     *
      * @return array{previous: null|Post, next: null|Post}
      */
     public function getNavigationPosts(Post $currentPost): array
