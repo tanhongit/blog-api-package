@@ -4,6 +4,7 @@ namespace CSlant\Blog\Api\Http\Resources\Author;
 
 use CSlant\Blog\Api\Http\Resources\Post\ListPostResourceCollection;
 use CSlant\Blog\Core\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
@@ -12,15 +13,15 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class AuthorWithPostResource extends JsonResource
 {
     /**
-     * @param $request
+     * @param  Request  $request
      *
      * @return array<string, mixed>
      */
-    public function toArray($request): array
+    public function toArray(Request $request): array
     {
         /** @var User $this */
         $posts = $this->posts()
-            ->orderBy((string) $request->get('order_by', 'created_at'), (string) $request->get('order', 'DESC'))
+            ->orderBy((string) $request->query->get('order_by', 'created_at'), (string) $request->query->get('order', 'DESC'))
             ->paginate($request->integer('per_page', 10));
 
         return [
