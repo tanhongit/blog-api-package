@@ -10,8 +10,6 @@ class BlogApiServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap services.
-     *
-     * @return void
      */
     public function boot(): void
     {
@@ -35,8 +33,6 @@ class BlogApiServiceProvider extends ServiceProvider
 
     /**
      * Register services.
-     *
-     * @return void
      */
     public function register(): void
     {
@@ -45,8 +41,6 @@ class BlogApiServiceProvider extends ServiceProvider
 
     /**
      * Register configs.
-     *
-     * @return void
      */
     protected function registerConfigs(): void
     {
@@ -84,9 +78,6 @@ class BlogApiServiceProvider extends ServiceProvider
         return ['blog-api'];
     }
 
-    /**
-     * @return void
-     */
     protected function registerCommands(): void
     {
         $this->commands([
@@ -94,9 +85,6 @@ class BlogApiServiceProvider extends ServiceProvider
         ]);
     }
 
-    /**
-     * @return void
-     */
     protected function registerAssetPublishing(): void
     {
         $configPath = __DIR__.'/../../config/blog-api.php';
