@@ -102,7 +102,7 @@ class BlogApiServiceProvider extends ServiceProvider
      */
     public function resourceOverride(): void
     {
-        if (! class_exists(\Botble\Blog\Http\Resources\TagResource::class, false)) {
+        if (!class_exists(\Botble\Blog\Http\Resources\TagResource::class, false)) {
             class_alias(
                 \CSlant\Blog\Api\Http\Resources\Tag\TagResource::class,
                 \Botble\Blog\Http\Resources\TagResource::class
